@@ -18,6 +18,7 @@ package main
 
 import (
 	"fmt"
+	"math/big"
 	"regexp"
 	"strconv"
 	"strings"
@@ -39,7 +40,6 @@ type Label struct {
 }
 
 func getSingleNumber(line string) int64 {
-
 	if len(strings.Fields(line)) > 2 {
 		panic(fmt.Sprintf("Too many fields found: %d", len(strings.Fields(line))))
 	}
@@ -47,10 +47,26 @@ func getSingleNumber(line string) int64 {
 	if len(strings.Split(field, ",")) > 1 {
 		panic(fmt.Sprintf("Unexpected comma found in field: %s", field))
 	}
+
+	return parseInt64(field)
+}
+
+func parseInt64(field string) int64 {
+	if strings.HasPrefix(field, "0x") {
+		n := new(big.Int)
+		v, ok := n.SetString(field, 0)
+		if !ok {
+			panic(fmt.Sprintf("unable to parse number: %v", field))
+		}
+
+		return v.Int64()
+	}
+
 	v, err := strconv.ParseInt(field, 10, 64)
 	if err != nil {
-		panic(fmt.Sprintf("Number parsing error: %v", err))
+		panic(fmt.Sprintf("unable to parse number: %v", err))
 	}
+
 	return v
 }
 
@@ -114,10 +130,7 @@ func defineTable(constants []string, tableName string) Table {
 			bytes = append(bytes, byte(v>>16))
 			bytes = append(bytes, byte(v>>24))
 		} else if strings.Contains(line, ".quad") {
-			v, err := strconv.ParseInt(strings.Fields(line)[1], 10, 64)
-			if err != nil {
-				panic(fmt.Sprintf("Atoi error for .quad: %v", err))
-			}
+			v := parseInt64(strings.Fields(line)[1])
 			bytes = append(bytes, byte(v))
 			bytes = append(bytes, byte(v>>8))
 			bytes = append(bytes, byte(v>>16))

@@ -19,6 +19,8 @@ package main
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func testConstant(t *testing.T, constants, expected string) {
@@ -283,4 +285,10 @@ DATA LCTABLE<>+0x018(SB)/8, $0x0004000400040004
 GLOBL LCTABLE<>(SB), 8, $32`
 
 	testConstant(t, constant6, table6)
+}
+
+func TestSingleNumber(t *testing.T) {
+	assert.Equal(t, int64(1234), getSingleNumber(".long	1234"))
+	assert.Equal(t, int64(0x80000000), getSingleNumber(".long	0x80000000"))
+	assert.Equal(t, int64(-9223372036854775808), parseInt64("0x8000000000000000"))
 }
