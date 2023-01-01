@@ -19,6 +19,7 @@ package main
 import (
 	"bufio"
 	"encoding/hex"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -275,8 +276,9 @@ func main() {
 
 	if *assembleFlag {
 		fmt.Println("Invoking asm2plan9s on", assemblyFile)
-		cmd := exec.Command("asm2plan9s", assemblyFile)
-		_, err := cmd.CombinedOutput()
+		cmd := exec.Command(pathOf("asm2plan9s"), assemblyFile)
+		output, err := cmd.CombinedOutput()
+		log.Printf(string(output))
 		if err != nil {
 			log.Fatalf("asm2plan9s: %v", err)
 		}
@@ -291,10 +293,22 @@ func main() {
 	}
 
 	if *formatFlag {
-		cmd := exec.Command("asmfmt", "-w", assemblyFile)
+		cmd := exec.Command(pathOf("asmfmt"), "-w", assemblyFile)
 		_, err := cmd.CombinedOutput()
 		if err != nil {
 			log.Fatalf("asmfmt: %v", err)
 		}
 	}
+}
+
+// pathOf returns a path to the program, including relative
+func pathOf(prog string) string {
+	path, err := exec.LookPath("asm2plan9s")
+	if errors.Is(err, exec.ErrDot) {
+		err = nil
+	}
+	if err != nil {
+		log.Fatal(err)
+	}
+	return path
 }

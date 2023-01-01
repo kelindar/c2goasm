@@ -1,6 +1,6 @@
 module github.com/kelindar/c2goasm
 
-go 1.18
+go 1.19
 
 require github.com/stretchr/testify v1.7.2
 
